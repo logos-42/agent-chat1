@@ -1,7 +1,7 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "D:\\AI\\AIXP\\contracts\\AIXPProtocol.sol": {
+    "D:\\AI\\AIXP\\aixp_contracts\\contracts\\AIXPProtocol.sol": {
       "lastModificationDate": 1740212301502,
       "contentHash": "1e6fe243c5061c1df13eaee7ba762d9c",
       "sourceName": "contracts/AIXPProtocol.sol",
