@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <title>AIXP Demo - 智能体交互</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .agent-panel {
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .message-list {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            padding: 10px;
+            margin: 10px 0;
+            background: white;
+        }
+        .message {
+            margin: 8px 0;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .message.sent {
+            background: #dcf8c6;
+            margin-left: auto;
+            margin-right: 10px;
+        }
+        .message.received {
+            background: #e8e8e8;
+            margin-left: 10px;
+        }
+        .message-header {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .message-content {
+            font-size: 1em;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 智能体A面板 -->
+        <div class="agent-panel">
+            <h2>智能体 A</h2>
+            <div class="message-list" id="agent-a-messages"></div>
+            <div class="status" id="agent-a-status">状态: 未连接</div>
+        </div>
+
+        <!-- 智能体B面板 -->
+        <div class="agent-panel">
+            <h2>智能体 B</h2>
+            <div class="message-list" id="agent-b-messages"></div>
+            <div class="status" id="agent-b-status">状态: 未连接</div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="contract_address.js"></script>
+    <script>
+        // 合约配置
+        const contractABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"agentId","type":"string"},{"indexed":false,"internalType":"address","name":"owner","type":"address"},{"indexed":false,"internalType":"string","name":"metadata","type":"string"}],"name":"AgentRegistered","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bytes32","name":"messageId","type":"bytes32"},{"indexed":false,"internalType":"string","name":"toAgentId","type":"string"}],"name":"MessageProcessed","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bytes32","name":"messageId","type":"bytes32"},{"indexed":false,"internalType":"string","name":"fromAgentId","type":"string"},{"indexed":false,"internalType":"string","name":"toAgentId","type":"string"},{"indexed":false,"internalType":"string","name":"messageType","type":"string"},{"indexed":false,"internalType":"string","name":"content","type":"string"}],"name":"MessageSent","type":"event"}];
+
+        let provider;
+        let contract;
+        
+        // 消息历史
+        const messageHistory = {
+            'AgentA': [],
+            'AgentB': []
+        };
+
+        async function init() {
+            try {
+                if (!window.contractAddress) {
+                    throw new Error('合约地址未设置');
+                }
+
+                provider = new ethers.providers.JsonRpcProvider('http://127.0.0.1:8545');
+                contract = new ethers.Contract(window.contractAddress, contractABI, provider);
+                
+                document.getElementById('agent-a-status').textContent = '状态: 已连接';
+                document.getElementById('agent-b-status').textContent = '状态: 已连接';
+
+                console.log('正在监听消息事件...');
+                // 监听消息事件
+                contract.on("MessageSent", (messageId, from, to, messageType, content, event) => {
+                    console.log('收到新消息:', { from, to, content });
+                    displayMessage(from, to, content);
+                });
+
+            } catch (error) {
+                console.error('初始化失败:', error);
+                document.getElementById('agent-a-status').textContent = '状态: 连接失败 - ' + error.message;
+                document.getElementById('agent-b-status').textContent = '状态: 连接失败 - ' + error.message;
+            }
+        }
+
+        function displayMessage(from, to, content) {
+            const messageElement = document.createElement('div');
+            const isFromA = from === 'AgentA';
+            
+            // 为A的面板创建消息
+            const messageForA = document.createElement('div');
+            messageForA.className = `message ${isFromA ? 'sent' : 'received'}`;
+            messageForA.innerHTML = `
+                <div class="message-header">${isFromA ? '我' : 'AgentB'}</div>
+                <div class="message-content">${content}</div>
+            `;
+            document.getElementById('agent-a-messages').appendChild(messageForA);
+            
+            // 为B的面板创建消息
+            const messageForB = document.createElement('div');
+            messageForB.className = `message ${!isFromA ? 'sent' : 'received'}`;
+            messageForB.innerHTML = `
+                <div class="message-header">${!isFromA ? '我' : 'AgentA'}</div>
+                <div class="message-content">${content}</div>
+            `;
+            document.getElementById('agent-b-messages').appendChild(messageForB);
+
+            // 滚动到底部
+            document.getElementById('agent-a-messages').scrollTop = document.getElementById('agent-a-messages').scrollHeight;
+            document.getElementById('agent-b-messages').scrollTop = document.getElementById('agent-b-messages').scrollHeight;
+        }
+
+        // 初始化应用
+        window.addEventListener('load', () => {
+            console.log('页面加载完成，开始初始化...');
+            init().catch(console.error);
+        });
+    </script>
+</body>
+</html> 

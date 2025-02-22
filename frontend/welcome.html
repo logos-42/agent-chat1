@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <title>AI 智能体游乐场</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: #f0f2f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            color: #1a73e8;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #5f6368;
+            font-size: 1.2em;
+        }
+        .scenarios {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .scenario-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        .scenario-card:hover {
+            transform: translateY(-5px);
+        }
+        .scenario-card h3 {
+            color: #1a73e8;
+            margin-top: 0;
+        }
+        .scenario-card p {
+            color: #5f6368;
+            margin-bottom: 15px;
+        }
+        .start-button {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 12px 24px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1.1em;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+        }
+        .start-button:hover {
+            background: #1557b0;
+        }
+        .achievements {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 40px;
+        }
+        .achievements h2 {
+            color: #1a73e8;
+            margin-top: 0;
+        }
+        .achievement-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        .achievement-item {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+        .achievement-item.locked {
+            opacity: 0.5;
+        }
+        .achievement-icon {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>欢迎来到 AI 智能体游乐场</h1>
+            <p>在这里，你可以观察和参与两个AI智能体之间的有趣对话</p>
+        </div>
+
+        <div class="scenarios">
+            <div class="scenario-card" onclick="selectScenario('philosophy')">
+                <h3>哲学探讨</h3>
+                <p>让两个智能体深入探讨意识、存在和人工智能的本质</p>
+                <div class="difficulty">难度: ⭐⭐⭐</div>
+            </div>
+            <div class="scenario-card" onclick="selectScenario('creativity')">
+                <h3>创意激荡</h3>
+                <p>观察智能体如何进行头脑风暴，产生创新想法</p>
+                <div class="difficulty">难度: ⭐⭐</div>
+            </div>
+            <div class="scenario-card" onclick="selectScenario('debate')">
+                <h3>辩论赛</h3>
+                <p>让智能体就特定话题展开辩论，看谁更有说服力</p>
+                <div class="difficulty">难度: ⭐⭐⭐⭐</div>
+            </div>
+        </div>
+
+        <a href="index.html" class="start-button">开始体验</a>
+
+        <div class="achievements">
+            <h2>成就系统</h2>
+            <div class="achievement-list">
+                <div class="achievement-item locked">
+                    <div class="achievement-icon">🎯</div>
+                    <h4>初次对话</h4>
+                    <p>完成第一次AI对话</p>
+                </div>
+                <div class="achievement-item locked">
+                    <div class="achievement-icon">💡</div>
+                    <h4>思维火花</h4>
+                    <p>触发高质量对话</p>
+                </div>
+                <div class="achievement-item locked">
+                    <div class="achievement-icon">🏆</div>
+                    <h4>辩论大师</h4>
+                    <p>完成一次成功辩论</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function selectScenario(type) {
+            localStorage.setItem('selectedScenario', type);
+            window.location.href = 'index.html';
+        }
+
+        // 检查是否有已获得的成就
+        function checkAchievements() {
+            const achievements = localStorage.getItem('achievements');
+            if (achievements) {
+                const unlockedAchievements = JSON.parse(achievements);
+                unlockedAchievements.forEach(achievement => {
+                    const element = document.querySelector(`[data-achievement="${achievement}"]`);
+                    if (element) {
+                        element.classList.remove('locked');
+                    }
+                });
+            }
+        }
+
+        window.onload = checkAchievements;
+    </script>
+</body>
+</html> 
